@@ -1,40 +1,38 @@
 import requests
 from bs4 import BeautifulSoup
+from lxml import etree
 
-def get_mWIG40_tickers():
-    url = "https://pl.investing.com/indices/wig-40-components"
+def get_mWIG40_companies():
+    url = "https://www.money.pl/gielda/indeksy_gpw/mwig40/"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
     }
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.content, 'html.parser')
 
-    mWIG40 = {}
+    # Konwertujemy zawartość na obiekt lxml
+    dom = etree.HTML(str(soup))
 
-    # Znajdź tabelę zawierającą spółki mWIG40
-    table = soup.find('table', {'id': 'cr1'})
-    if not table:
-        print("Nie znaleziono tabeli z komponentami mWIG40.")
-        return mWIG40
+    companies = []
 
-    rows = table.find_all('tr')[1:]  # Pomijamy nagłówek tabeli
+    # XPath dla nazw spółek
+    company_tags = dom.xpath('//*[@id="app"]/div/div[11]/div/div[2]/div/main/div/section[2]/div[2]/div[1]/div/div/div/div[2]/div/div/div/a/div')
+    for tag in company_tags:
+        company_name = tag.text.strip()
+        companies.append(company_name)
 
-    for row in rows:
-        cols = row.find_all('td')
-        company_name = cols[1].text.strip()
-        ticker = cols[1].find('a').get('href').split('/')[-1] + ".WA"
-        mWIG40[company_name] = ticker
+    return companies
 
-    return mWIG40
-
-def save_to_file(data, filename):
+def save_to_text_file(data, filename):
     with open(filename, 'w', encoding='utf-8') as file:
-        for company, ticker in data.items():
-            file.write(f'{company}: {ticker}\n')
+        for company in data:
+            file.write(f'{company}\n')
 
 # Przykład użycia
 if __name__ == "__main__":
-    tickers = get_mWIG40_tickers()
-    save_to_file(tickers, 'mWIG40_tickers.txt')
-    print("Zapisano dane do pliku mWIG40_tickers.txt")
-
+    companies = get_mWIG40_companies()
+    if companies:
+        save_to_text_file(companies, 'mWIG40_companies.txt')
+        print("Zapisano dane do pliku mWIG40_companies.txt")
+    else:
+        print("Nie udało się pobrać danych.")
