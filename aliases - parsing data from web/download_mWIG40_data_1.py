@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from lxml import etree
 
+
 def get_mWIG40_companies():
     url = "https://www.money.pl/gielda/indeksy_gpw/mwig40/"
     headers = {
