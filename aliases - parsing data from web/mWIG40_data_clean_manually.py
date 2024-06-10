@@ -14,3 +14,4 @@ my_file_out = "wig_40_cleanup.txt"
 
 delete_lines_and_modify_sa(my_file_in, my_file_out)
 print("File is ready")
+
